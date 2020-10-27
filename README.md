@@ -4,6 +4,11 @@
 
 NeuralBERTClassifier is designed for quick implementation of neural models for multi-label classification problem: Medical Slot Filling (MSF). A salient feature is that NeuralBERTClassifier currently provides a variety of text encoders, such as FastText, TextCNN, TextRNN, RCNN, VDCNN, DPCNN, DRNN, AttentiveConvNet, Transformer encoder, and BERT etc. It also supports other text classification scenarios, including binary-class and multi-class classification. It is built on [PyTorch](https://pytorch.org/). Corresponding paper **Understanding Medical Conversations with Scattered Keyword Attention and Weak Supervision from Responses** was accepted by [AAAI 2020](https://aaai.org/ojs/index.php/AAAI/article/view/6412).
 
+
+## Notice
+**According to Tencent's regulations, the dataset can only be used for research purposes.**
+
+
 ## Support tasks
 
 * Binary-class text classifcation
