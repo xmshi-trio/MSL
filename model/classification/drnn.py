@@ -56,7 +56,6 @@ class DRNN(Classifier):
     def forward(self, batch):
         front_pad_embedding, _, mask = self.get_embedding(
             batch, [self.window_size - 1, 0], cDataset.VOCAB_PADDING_LEARNABLE)
-        front_pad_embedding = self.token_similarity_attention(front_pad_embedding)
         if self.config.DRNN.bidirectional:
             tail_pad_embedding, _, _ = self.get_embedding(
                 batch, [0, self.window_size - 1],
@@ -119,23 +118,3 @@ class DRNN(Classifier):
         max_pooling = torch.nn.functional.max_pool1d(
             mlp_hidden.transpose(1, 2), mlp_hidden.size(1)).squeeze()
         return self.linear(self.dropout(max_pooling))
-
-    def token_similarity_attention(self, output):
-        # output: (batch, sentence length, embedding dim)
-        symptom_id_list = [6, 134, 15, 78, 2616, 257, 402, 281, 14848, 71, 82, 96, 352, 60, 227, 204, 178, 175, 233, 192, 416, 91, 232, 317, 17513, 628, 1047]
-        symptom_embedding = self.token_embedding(torch.LongTensor(symptom_id_list).cuda())
-        # symptom_embedding: torch.tensor(symptom_num, embedding dim)
-        batch_symptom_embedding = torch.cat([symptom_embedding.view(1, symptom_embedding.shape[0], -1)] * output.shape[0], dim=0)
-        similarity = torch.sigmoid(torch.bmm(torch.nn.functional.normalize(output, dim=2), torch.nn.functional.normalize(batch_symptom_embedding.permute(0, 2, 1), dim=2)))
-        #similarity = torch.bmm(torch.nn.functional.normalize(output, dim=2), torch.nn.functional.normalize(batch_symptom_embedding.permute(0, 2, 1), dim=2))
-        #similarity = torch.sigmoid(torch.max(similarity, dim=2)[0])
-        similarity = torch.max(similarity, dim=2)[0]
-        #similarity = torch.sigmoid(torch.sum(similarity, dim=2))
-        # similarity: torch.tensor(batch, sentence_len)
-        similarity = torch.cat([similarity.view(similarity.shape[0], -1, 1)] * output.shape[2], dim=2)
-        # similarity: torch.tensor(batch, batch, sentence_len, embedding dim)
-        #sentence_embedding = torch.sum(torch.mul(similarity, output), dim=1)
-        # sentence_embedding: (batch, embedding)
-        sentence_embedding = torch.mul(similarity, output)
-        # sentence_embedding: (batch, sentence len, embedding)
-        return sentence_embedding

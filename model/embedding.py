@@ -113,10 +113,9 @@ class Embedding(torch.nn.Module):
                     continue
                 if data[0] not in dict_map:
                     continue
-                if len(data) == 301:
-                    embedding = torch.FloatTensor([float(i) for i in data[1:]])
-                    embedding_lookup_table[dict_map[data[0]]] = embedding
-                    num_pretrained += 1
+                embedding = torch.FloatTensor([float(i) for i in data[1:]])
+                embedding_lookup_table[dict_map[data[0]]] = embedding
+                num_pretrained += 1
         self.logger.warn(
             "Total dict size of %s is %d" % (name, len(dict_map)))
         self.logger.warn("Size of pretrained %s embedding is %d" % (

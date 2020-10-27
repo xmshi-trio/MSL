@@ -54,13 +54,14 @@ class TextCNN(Classifier):
                 param_group["lr"] = 0
 
     def forward(self, batch):
-        if self.config.feature.feature_names[0] == "token":
-            embedding = self.token_embedding(
-                batch[cDataset.DOC_TOKEN].to(self.config.device))
-        else:
-            embedding = self.char_embedding(
-                batch[cDataset.DOC_CHAR].to(self.config.device))
-        #embedding = self.token_similarity_attention(embedding)
+        #if self.config.feature.feature_names[0] == "token":
+        #    embedding = self.token_embedding(
+        #        batch[cDataset.DOC_TOKEN].to(self.config.device))
+        #else:
+        #    embedding = self.char_embedding(
+        #        batch[cDataset.DOC_CHAR].to(self.config.device))
+        #embedding = embedding.transpose(1, 2)
+        embedding = batch['doc_token'].to(self.config.device)
         embedding = embedding.transpose(1, 2)
         pooled_outputs = []
         for i, conv in enumerate(self.convs):

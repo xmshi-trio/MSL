@@ -110,7 +110,6 @@ class FastText(torch.nn.Module):
         doc_embedding = self.token_embedding(
             batch[cDataset.DOC_TOKEN].to(self.config.device),
             batch[cDataset.DOC_TOKEN_OFFSET].to(self.config.device))
-        #doc_embedding = self.token_similarity_attention(doc_embedding)
         length = batch[cDataset.DOC_TOKEN_LEN].to(self.config.device)
         if self.config.feature.token_ngram > 1:
             doc_embedding += self.token_ngram_embedding(

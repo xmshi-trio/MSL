@@ -177,7 +177,7 @@ class ClassificationEvaluator(object):
             filtered_confusion_matrix_list contains result that max predict prob
                 is greater than threshold and will be used to calculate prf,
             precision_list, recall_list, fscore_list,
-            right_count_list, predict_count_list, standard_count_list
+            right_count_list, predict_count_list, standard_count_list, turn_accuracy
         """
 
         def _init_confusion_matrix(label_map):
@@ -330,7 +330,7 @@ class ClassificationEvaluator(object):
                                 if std_label == pred_label:
                                     right_category_count_list[level][pred_label] += 1
             line_count += 1
-        print("Turn Accuracy: ", (float(accuracy)/float(line_count)))
+        turn_accuracy = float(accuracy)/float(line_count)
         debug_file.close()
         precision_list = []
         recall_list = []
@@ -363,7 +363,7 @@ class ClassificationEvaluator(object):
                 standard_category_count_list)
         return (confusion_matrix_list, precision_list, recall_list, fscore_list,
                 right_category_count_list, predict_category_count_list,
-                standard_category_count_list)
+                standard_category_count_list, turn_accuracy)
 
     @staticmethod
     def save_confusion_matrix(file_name, confusion_matrix):

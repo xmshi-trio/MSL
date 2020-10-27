@@ -20,6 +20,7 @@ import torch
 from util import Logger
 from util import ModeType
 from util import Type
+from torch.utils.data import TensorDataset
 
 
 class InsertVocabMode(Type):
@@ -43,6 +44,7 @@ class InsertVocabMode(Type):
 
 
 class DatasetBase(torch.utils.data.dataset.Dataset):
+#class DatasetBase(TensorDataset):
     """Base dataset class
     """
     CHARSET = "utf-8"
@@ -61,6 +63,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         Args:
             config:
         """
+
         self.config = config
         self.logger = Logger(config)
         self._init_dict()
@@ -183,8 +186,8 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
                     id_to_vocab_dict_map[1] = self.VOCAB_UNKNOWN
                     id_to_vocab_dict_map[2] = self.VOCAB_PADDING_LEARNABLE
 
-                for line in open(self.dict_files[dict_idx], "r"):
-                    vocab = line.strip("\n").split("\t")
+                for line in open(self.dict_files[dict_idx], "rb"):
+                    vocab = line.decode().strip("\n").split("\t")
                     dict_idx = len(dict_map)
                     dict_map[vocab[0]] = dict_idx
                     id_to_vocab_dict_map[dict_idx] = vocab[0]
@@ -284,15 +287,14 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         """Convert label to id. The reason that label is not in label map may be
         label is filtered or label in validate/test does not occur in train set
         """
-        #temp_label = torch.load('/users3/xmshi/tools/NeuralNLP-NeuralClassifier/dict_symptom_relative/label_map.dict')
         label_id_list = []
         for label in sequence_labels:
             if label not in dict_map:
                 self.logger.warn("Label not in label map: %s" % label)
             else:
                 label_id_list.append(self.label_map[label])
-                #label_id_list.append(temp_label[label])
         assert label_id_list, "Label is empty: %s" % " ".join(sequence_labels)
+
         return label_id_list
 
     def _token_to_id(self, sequence_tokens, token_map, char_map, ngram=0,
@@ -300,7 +302,6 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
                      max_char_length_per_token=-1):
         """Convert token to id. Vocab not in dict map will be map to _UNK
         """
-        #token_map = torch.load('/users3/xmshi/tools/NeuralNLP-NeuralClassifier/dict_symptom_relative/token_map.dict')
         token_id_list = []
         char_id_list = []
         char_in_token_id_list = []

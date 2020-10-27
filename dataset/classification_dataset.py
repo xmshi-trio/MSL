@@ -12,11 +12,11 @@ or implied. See the License for thespecific language governing permissions and l
 the License.
 """
 
-import torch
 from dataset.dataset import DatasetBase
 from dataset.dataset import InsertVocabMode
 from util import ModeType
-
+import torch
+from transformers import *
 
 class ClassificationDataset(DatasetBase):
     CLASSIFICATION_LABEL_SEPARATOR = "--"
@@ -54,6 +54,7 @@ class ClassificationDataset(DatasetBase):
                  mode=ModeType.EVAL):
         super(ClassificationDataset, self).__init__(
             config, json_files, generate_dict=generate_dict, mode=mode)
+        self.tokenizer = BertTokenizer.from_pretrained('/dockerdata/xiaomingshi/chinese_L-12_H-768_A-12')
 
     def _init_dict(self):
         self.dict_names = \
@@ -145,6 +146,14 @@ class ClassificationDataset(DatasetBase):
             self._insert_sequence_vocab(doc_keywords, self.keyword_map)
             self._insert_sequence_vocab(doc_topics, self.topic_map)
 
+    def get_sentence_bert_id(self, sentence):
+        '''
+        sentence: str sequence
+        '''
+        sentence = '[CLS] ' + ' '.join(sentence) + ' [SEP]'
+        token_ids = self.tokenizer.encode(sentence, add_special_tokens=False, max_length=50, truncation=True)
+        return token_ids
+
     def _get_vocab_id_list(self, json_obj):
         """Use dict to convert all vocabs to ids
         """
@@ -160,9 +169,13 @@ class ClassificationDataset(DatasetBase):
                               self.token_ngram_map,
                               self.config.feature.max_char_len,
                               self.config.feature.max_char_len_per_token)
-
         return {self.DOC_LABEL: self._label_to_id(doc_labels, self.label_map),
-                self.DOC_TOKEN: token_ids, self.DOC_CHAR: char_ids,
+                #self.DOC_TOKEN: token_ids, 
+                # 修改_get_vocab_id_list函数，使之只对label进行处理，对doc_token获取其对应的embedding
+                #self.DOC_TOKEN: doc_tokens,
+                #self.DOC_TOKEN: self.get_sentence_bert_embedding(doc_tokens),
+                self.DOC_TOKEN: self.get_sentence_bert_id(doc_tokens),
+                self.DOC_CHAR: char_ids,
                 self.DOC_CHAR_IN_TOKEN: char_in_token_ids,
                 self.DOC_TOKEN_NGRAM: token_ngram_ids,
                 self.DOC_KEYWORD:

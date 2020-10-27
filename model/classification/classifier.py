@@ -91,7 +91,8 @@ class Classifier(torch.nn.Module):
             if pad_shape is not None:
                 token_id = torch.nn.functional.pad(
                     token_id, pad_shape, mode='constant', value=pad_value)
-            embedding = self.token_embedding(token_id)
+            #embedding = self.token_embedding(token_id)
+            embedding = token_id
             length = batch[cDataset.DOC_TOKEN_LEN].to(self.config.device)
             mask = batch[cDataset.DOC_TOKEN_MASK].to(self.config.device)
         else:

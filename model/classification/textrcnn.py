@@ -68,15 +68,16 @@ class TextRCNN(Classifier):
                 param_group["lr"] = 0
 
     def forward(self, batch):
-        if self.config.feature.feature_names[0] == "token":
-            embedding = self.token_embedding(
-                batch[cDataset.DOC_TOKEN].to(self.config.device))
-            seq_length = batch[cDataset.DOC_TOKEN_LEN].to(self.config.device)
-        else:
-            embedding = self.char_embedding(
-                batch[cDataset.DOC_CHAR].to(self.config.device))
-            seq_length = batch[cDataset.DOC_CHAR_LEN].to(self.config.device)
-        embedding = self.token_similarity_attention(embedding)
+        #if self.config.feature.feature_names[0] == "token":
+        #    embedding = self.token_embedding(
+        #        batch[cDataset.DOC_TOKEN].to(self.config.device))
+        #    seq_length = batch[cDataset.DOC_TOKEN_LEN].to(self.config.device)
+        #else:
+        #    embedding = self.char_embedding(
+        #        batch[cDataset.DOC_CHAR].to(self.config.device))
+        #    seq_length = batch[cDataset.DOC_CHAR_LEN].to(self.config.device)
+        embedding = batch['doc_token'].to(self.config.device)
+        seq_length = batch[cDataset.DOC_TOKEN_LEN].to(self.config.device)
         output, _ = self.rnn(embedding, seq_length)
 
         doc_embedding = output.transpose(1, 2)
@@ -90,23 +91,3 @@ class TextRCNN(Classifier):
         doc_embedding = torch.cat(pooled_outputs, 1)
 
         return self.dropout(self.linear(doc_embedding))
-
-    def token_similarity_attention(self, output):
-        # output: (batch, sentence length, embedding dim)
-        symptom_id_list = [6, 134, 15, 78, 2616, 257, 402, 281, 14848, 71, 82, 96, 352, 60, 227, 204, 178, 175, 233, 192, 416, 91, 232, 317, 17513, 628, 1047]
-        symptom_embedding = self.token_embedding(torch.LongTensor(symptom_id_list).cuda())
-        # symptom_embedding: torch.tensor(symptom_num, embedding dim)
-        batch_symptom_embedding = torch.cat([symptom_embedding.view(1, symptom_embedding.shape[0], -1)] * output.shape[0], dim=0)
-        similarity = torch.sigmoid(torch.bmm(torch.nn.functional.normalize(output, dim=2), torch.nn.functional.normalize(batch_symptom_embedding.permute(0, 2, 1), dim=2)))
-        #similarity = torch.bmm(torch.nn.functional.normalize(output, dim=2), torch.nn.functional.normalize(batch_symptom_embedding.permute(0, 2, 1), dim=2))
-        #similarity = torch.sigmoid(torch.max(similarity, dim=2)[0])
-        similarity = torch.max(similarity, dim=2)[0]
-        #similarity = torch.sigmoid(torch.sum(similarity, dim=2))
-        # similarity: torch.tensor(batch, sentence_len)
-        similarity = torch.cat([similarity.view(similarity.shape[0], -1, 1)] * output.shape[2], dim=2)
-        # similarity: torch.tensor(batch, batch, sentence_len, embedding dim)
-        #sentence_embedding = torch.sum(torch.mul(similarity, output), dim=1)
-        # sentence_embedding: (batch, embedding)
-        sentence_embedding = torch.mul(similarity, output)
-        # sentence_embedding: (batch, sentence len, embedding)
-        return sentence_embedding
